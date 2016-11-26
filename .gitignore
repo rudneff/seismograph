@@ -43,3 +43,5 @@ docs/_build
 #Eclipse/Aptana
 .project
 .pydevproject
+
+.eggs/
