@@ -5,6 +5,8 @@ import unittest
 from mock import Mock
 
 import seismograph
+import fake_package
+from seismograph.suite import Suite
 from seismograph import loader
 from seismograph.exceptions import LoaderError
 from seismograph.loader import check_path_is_exist, is_package
@@ -138,3 +140,21 @@ class TestLoadSuitesFromModule(unittest.TestCase):
     def test_load_existed_suite(self):
         suite_gen = loader.load_suites_from_module(suite_factory, suite_factory.FakeSuite)
         self.assertIsInstance(suite_gen, types.GeneratorType)
+
+
+class TestLoadSuitesFromPath(unittest.TestCase):
+    def setUp(self):
+        self.not_existed_path = ' '
+        self.existed_path = os.path.dirname(fake_package.__file__)
+
+    def test_load_not_existed_path(self):
+        with self.assertRaises(LoaderError):
+            loader.load_suites_from_path(self.not_existed_path, suite_factory.FakeSuite).next()
+
+    def test_load_with_no_package(self):
+        with self.assertRaises(ImportError):
+            loader.load_suites_from_path(os.path.dirname(suite_factory.__file__), suite_factory.FakeSuite).next()
+
+    def test_existed_path_no_recursive(self):
+        suites = loader.load_suites_from_path(self.existed_path, suite_class=Suite, package="tests.fake_package", recursive=False)
+        self.assertEqual(sum(1 for x in suites), 2)
