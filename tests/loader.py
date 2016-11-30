@@ -5,7 +5,7 @@ import unittest
 from mock import Mock
 
 import seismograph
-import fake_package
+from tests import fake_package
 from seismograph.suite import Suite
 from seismograph import loader
 from seismograph.exceptions import LoaderError
@@ -20,7 +20,7 @@ class TestLoaderCheckers(unittest.TestCase):
         self.not_existed_path = ' '
         self.package_path = os.getcwd()
         self.not_python_package = os.path.join(os.getcwd(), "not_python_package")
-        os.mkdir(self.not_python_package, mode=644)
+        os.mkdir(self.not_python_package, 644)
 
     def tearDown(self):
         self.not_existed_path = None
@@ -149,12 +149,12 @@ class TestLoadSuitesFromPath(unittest.TestCase):
 
     def test_load_not_existed_path(self):
         with self.assertRaises(LoaderError):
-            loader.load_suites_from_path(self.not_existed_path, suite_factory.FakeSuite).next()
+            next(loader.load_suites_from_path(self.not_existed_path, suite_factory.FakeSuite))
 
     def test_load_with_no_package(self):
         with self.assertRaises(ImportError):
-            loader.load_suites_from_path(os.path.dirname(suite_factory.__file__), suite_factory.FakeSuite).next()
+            next(loader.load_suites_from_path(os.path.dirname(suite_factory.__file__), suite_factory.FakeSuite))
 
     def test_existed_path_no_recursive(self):
         suites = loader.load_suites_from_path(self.existed_path, suite_class=Suite, package="tests.fake_package", recursive=False)
-        self.assertEqual(sum(1 for x in suites), 2)
+        self.assertEqual(sum(1 for _ in suites), 2)
