@@ -140,33 +140,6 @@ class TestLoadSuitesFromModule(unittest.TestCase):
         suite_gen = loader.load_suites_from_module(suite_factory, suite_factory.FakeSuite)
         self.assertIsInstance(suite_gen, types.GeneratorType)
 
-    # class TestLoadSuitesFromPath(unittest.TestCase):
-    #     def setUp(self):
-    #         self.fake_module = Mock()
-    #         self.not_existed_path = ' '
-    #         self.existed_path = os.path.dirname(fake_package.__file__)
-    #         self.no_recursive_suites_count = 2
-    #         self.recursive_suites_count = 5
-    #         self.fake_package = "tests.fake_package"
-    #
-    #     def test_load_not_existed_path(self):
-    #         with self.assertRaises(LoaderError):
-    #             next(loader.load_suites_from_path(self.not_existed_path, suite_factory.FakeSuite))
-    #
-    #     def test_load_with_no_package(self):
-    #         with self.assertRaises(ImportError):
-    #             next(loader.load_suites_from_path(os.path.dirname(suite_factory.__file__), suite_factory.FakeSuite))
-    #
-    #     def test_existed_path_no_recursive(self):
-    #         suites = loader.load_suites_from_path(self.existed_path, suite_class=Suite, package=self.fake_package,
-    #                                               recursive=False)
-    #         self.assertEqual(sum(1 for _ in suites), self.no_recursive_suites_count)
-    #
-    # def test_existed_path_recursive(self):
-    #     suites = loader.load_suites_from_path(self.existed_path, suite_class=Suite, package=self.fake_package,
-    #                                           recursive=True)
-    #     self.assertEqual(sum(1 for _ in suites), self.recursive_suites_count)
-
 
 class TestLoadSuitesFromPat(unittest.TestCase):
     def setUp(self):
