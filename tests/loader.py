@@ -5,6 +5,7 @@ import unittest
 from mock import Mock
 
 import seismograph
+from tests import fake_package
 from seismograph import loader, Suite, Case, Context, Script, Program
 from seismograph.exceptions import LoaderError
 from seismograph.loader import check_path_is_exist, is_package
@@ -142,7 +143,6 @@ class TestLoadSuitesFromModule(unittest.TestCase):
 
 class TestLoadSuitesFromPath(unittest.TestCase):
     def setUp(self):
-        from tests import fake_package
         self.not_existed_path = ' '
         self.existed_path = os.path.dirname(fake_package.__file__)
         self.no_recursive_suites_count = 2
