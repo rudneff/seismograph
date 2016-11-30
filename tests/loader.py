@@ -5,9 +5,7 @@ import unittest
 from mock import Mock
 
 import seismograph
-from tests import fake_package
-from seismograph.suite import Suite
-from seismograph import loader
+from seismograph import loader, Suite, Case, Context, Script, Program
 from seismograph.exceptions import LoaderError
 from seismograph.loader import check_path_is_exist, is_package
 from tests.lib.factories import case_factory
@@ -144,8 +142,12 @@ class TestLoadSuitesFromModule(unittest.TestCase):
 
 class TestLoadSuitesFromPath(unittest.TestCase):
     def setUp(self):
+        from tests import fake_package
         self.not_existed_path = ' '
         self.existed_path = os.path.dirname(fake_package.__file__)
+        self.no_recursive_suites_count = 2
+        self.recursive_suites_count = 5
+        self.fake_package = "tests.fake_package"
 
     def test_load_not_existed_path(self):
         with self.assertRaises(LoaderError):
@@ -156,5 +158,83 @@ class TestLoadSuitesFromPath(unittest.TestCase):
             next(loader.load_suites_from_path(os.path.dirname(suite_factory.__file__), suite_factory.FakeSuite))
 
     def test_existed_path_no_recursive(self):
-        suites = loader.load_suites_from_path(self.existed_path, suite_class=Suite, package="tests.fake_package", recursive=False)
-        self.assertEqual(sum(1 for _ in suites), 2)
+        suites = loader.load_suites_from_path(self.existed_path, suite_class=Suite, package=self.fake_package,
+                                              recursive=False)
+        self.assertEqual(sum(1 for _ in suites), self.no_recursive_suites_count)
+
+    def test_existed_path_recursive(self):
+        suites = loader.load_suites_from_path(self.existed_path, suite_class=Suite, package=self.fake_package,
+                                              recursive=True)
+        self.assertEqual(sum(1 for _ in suites), self.recursive_suites_count)
+
+
+class TestLoadSeparatedClassesForFlows(unittest.TestCase):
+    class NoFlowsCase(Case):
+        __flows__ = (
+        )
+
+    class FlowsCase(Case):
+        __flows__ = (
+            Context(num=1),
+            Context(num=2),
+            Context(num=3)
+        )
+
+    def setUp(self):
+        self.flows_count = 3
+
+    def test_load_no_flows_class(self):
+        classes = loader.load_separated_classes_for_flows(self.NoFlowsCase)
+        self.assertIn(self.NoFlowsCase, classes)
+        self.assertEqual(1, len(classes))
+
+    def test_load_flows_class(self):
+        classes = loader.load_separated_classes_for_flows(self.FlowsCase)
+        self.assertEqual(self.flows_count, len(classes))
+        for index, clazz in enumerate(classes):
+            self.assertEqual(self.FlowsCase.__name__ + str(index + 1), clazz.__name__)
+
+
+class TestLoadTasksFromScript(unittest.TestCase):
+    class Script(Script):
+        def task_1(self):
+            pass
+
+        def task_2(self):
+            pass
+
+        def customtsk_1(self):
+            pass
+
+        def customtsk_2(self):
+            pass
+
+        def customtsk_3(self):
+            pass
+
+    def setUp(self):
+        self.default_tasks_count = 2
+        self.custom_tasks_count = 3
+        self.program = Program(),
+        self.custom_task_prefix = "customtsk"
+        self.default_tasks_names = (
+            self.Script.task_1.__name__,
+            self.Script.task_2.__name__
+        )
+        self.custom_task_names = (
+            self.Script.customtsk_1.__name__,
+            self.Script.customtsk_2.__name__,
+            self.Script.customtsk_3.__name__
+        )
+
+    def test_load_default_tasks(self):
+        scripts = list(loader.load_tasks_from_script(self.program, self.Script))
+        task_names = map(lambda script: script._method_name, scripts)
+        for default_task_name in self.default_tasks_names:
+            self.assertIn(default_task_name, task_names)
+
+    def test_load_custom_tasks(self):
+        scripts = list(loader.load_tasks_from_script(self.program, self.Script, task_name_prefix=self.custom_task_prefix))
+        task_names = map(lambda script: script._method_name, scripts)
+        for custom_task_name in self.custom_task_names:
+            self.assertIn(custom_task_name, task_names)
