@@ -39,7 +39,6 @@ def load_module(module_name, package=None):
     module_name = '{}{}'.format(
         package + '.' if package else '', module_name,
     )
-
     logger.debug('Load module "{}"'.format(module_name))
 
     # Can be conflict with global name
