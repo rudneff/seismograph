@@ -1,4 +1,3 @@
-
 import inspect
 
 from seismograph import extensions
@@ -15,6 +14,8 @@ class TestExtension(object):
     def __init__(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
+
+
 args = (1, 2, 3, 4, 5)
 kwargs = dict(a=1, b=2, c=3, d=4, e=5)
 
@@ -53,13 +54,14 @@ class TestSharedExtension(BaseTestCase):
         container = self.ex_tmp['test_extension']
         self.assertEqual(container.args, extensions.get('test_extension').args)
         self.assertEqual(container.kwargs, extensions.get('test_extension').kwargs)
+
+        extensions._WAS_CLEAR = True
         self.assertRaises(RuntimeError, extensions.get, 'sss')
 
         extensions._WAS_CLEAR = False
-
         self.assertRaises(extensions.ExtensionNotFound, extensions.get, '')
 
-        extensions._TMP.update({'test':'_test_'})
+        extensions._TMP.update({'test': '_test_'})
         self.assertEqual(deepcopy('_test_'), extensions.get('test'))
 
     def tearDown(self):
